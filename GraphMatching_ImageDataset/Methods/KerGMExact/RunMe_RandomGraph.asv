@@ -1,0 +1,88 @@
+% There are three experimental settings:
+% 1. inlier=20, outlier=[0:2:20], density=1, deformation=0;
+% 2. inlier=20, outlier=0, density=[0.3:0.1:1], deformation=0;
+% 3. inlier=20, outlier=0, density=1, deformation=[0:0.02:0.2];
+
+clear (); clc; close all;
+setting=2;
+
+% parameters for optimization
+nrep=30;lambda=0.005;num=11;sigma=0.15;
+
+
+switch setting
+    
+    case 1
+        inlier=20; outlier=0:2:20; density=1; deformation=0;
+        nvar=length(outlier); Acc=zeros(nrep,nvar);
+        number=0;
+        for irep=1:nrep
+            for jvar=1:nvar
+                
+                % Generate random graphs
+                [Graph1,Graph2,KP,KQ]=GenerateRandGraph(inlier,outlier(jvar),density,deformation);
+                % Obtain matching matrix 
+                [OptX,obj]=KerGM_Exact(Graph1,Graph2,KP,KQ,lambda,num);
+                % Get the accuracy
+                Acc(irep,jvar)=X(:)'*GT(:)/sum(GT(:));
+                
+                number=number+1;
+                fprintf('The %dth graph matching problem has been solved\n', number);
+                
+            end
+        end
+        meanacc=mean(Acc);
+        figure;
+        plot(outlier,meanacc);
+        
+    case 2
+        inlier=20; outlier=0; density=0.3:0.1:1; deformation=0;
+        nvar=length(density); Acc=zeros(nrep,nvar);
+        number=0;
+        for irep=1:nrep
+            for jvar=1:nvar
+                
+                 % Generate random graphs
+                [Graph1,Graph2,KP,KQ]=GenerateRandGraph(inlier,outlier,density(jvar),deformation);
+                % Obtain matching matrix 
+                [OptX,obj]=KerGM_Exact(Graph1,Graph2,KP,KQ,lambda,num);
+                % Get the accuracy
+                Acc(irep,jvar)=X(:)'*GT(:)/sum(GT(:));
+                
+                number=number+1;
+                fprintf('The %dth graph matching problem has been solved\n', number);
+                
+            end
+        end
+        meanacc=mean(Acc);
+        figure;
+        plot(density,meanacc); 
+        
+    case 3 
+        inlier=20; outlier=0; density=1; deformation=0:0.02:0.2;
+        nvar=length(deformation); Acc=zeros(nrep,nvar);
+        number=0;
+        for irep=1:nrep
+            for jvar=1:nvar
+                
+                % Generate random graphs
+                [A,B,GT]=GenerateRandGraph(inlier,outlier,density,deformation(jvar));
+                % Obtain matching matrix 
+                [X,obj]=EntropyGMExactPath(A,B,lambda,num,sigma);
+                % Get the accuracy
+                Acc(irep,jvar)=X(:)'*GT(:)/sum(GT(:));
+                
+                number=number+1;
+                fprintf('The %dth graph matching problem has been solved\n', number);
+                
+            end
+        end
+        meanacc=mean(Acc);
+        figure;
+        plot(deformation,meanacc);     
+        
+end 
+
+
+
+
